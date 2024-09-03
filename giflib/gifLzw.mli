@@ -1,4 +1,3 @@
-
 val decode : int LazyList.t -> int -> int list LazyList.t
 
 (*

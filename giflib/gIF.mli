@@ -1,4 +1,5 @@
 type t
+
 val from_file : string -> t
 val to_file : t -> string -> unit
 val get_image : t -> int -> Image.image

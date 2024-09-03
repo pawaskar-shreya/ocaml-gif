@@ -10,13 +10,14 @@ let test_example_file _ =
 
 let test_get_image_fail _ =
   let g = GIF.from_file "../../../test/testdata/test1.gif" in
-  assert_raises (GIF.Error "get_image: frame not found") (fun () -> GIF.get_image g 1)
+  assert_raises (GIF.Error "get_image: frame not found") (fun () ->
+      GIF.get_image g 1)
 
 let suite =
-  "BasicLoading" >::: [
-    "Load file" >:: test_example_file;
-    "Fail get imagae" >:: test_get_image_fail;
-  ]
+  "BasicLoading"
+  >::: [
+         "Load file" >:: test_example_file;
+         "Fail get imagae" >:: test_get_image_fail;
+       ]
 
-let () =
-  run_test_tt_main suite
+let () = run_test_tt_main suite
