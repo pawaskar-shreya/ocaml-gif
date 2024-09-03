@@ -1,5 +1,5 @@
 open OUnit2
-open Gif
+open Giflib
 
 let test_example_file _ =
   let g = GIF.from_file "../../../test/testdata/test1.gif" in

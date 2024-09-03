@@ -1,6 +1,6 @@
 (lang dune 3.14)
 
-(name gif)
+(name giflib)
 
 (generate_opam_files true)
 
@@ -16,7 +16,7 @@
 (documentation https://url/to/documentation)
 
 (package
- (name gif)
+ (name giflib)
  (synopsis "Implementation of GIF image format in OCaml")
  (description "Implementation of GIF image format in OCaml.")
  (depends ocaml dune)

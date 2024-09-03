@@ -1,4 +1,4 @@
 (library
- (public_name gif)
- (name gif)
+ (public_name giflib)
+ (name giflib)
  (libraries camlp-streams))
