@@ -4,12 +4,12 @@
 type 'a t = Cons of 'a * (unit -> 'a t) | Nil
 
 (* zwraca zwykla liste z n pierwszych elementow leniwej listy xs *)
-let rec take n xs  = 
+let rec take n xs  =
   match n, xs with
     | 0, _ -> []
-    | n, Nil -> []
+    | _n, Nil -> []
     | n, Cons (x, xs) ->
-	x :: take (n-1) (xs ()) 
+	x :: take (n-1) (xs ())
 ;;
 
 let rec iter f = function
@@ -30,9 +30,9 @@ let rec map f xs = match xs with
    kazedgo elementu listy wejsciowej i tworzy (leniwa) liste powstala
    przez splaszenie wyniku dzialania fn *)
 let flatten_map fn inp =
-  let rec flatten_map acc inp = 
+  let rec flatten_map acc inp =
     match acc with
-      | (x :: xs) -> 
+      | (x :: xs) ->
 	  Cons (x, fun () -> flatten_map xs inp)
       | [] -> (
 	  match inp with

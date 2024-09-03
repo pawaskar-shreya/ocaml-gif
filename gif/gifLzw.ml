@@ -4,12 +4,12 @@
 (* konwertuje bajt (int < 256) na liste bitow (int 0-1), poczawszy od
    najmlodszego bitu *)
 let byte_to_bits =
-  let conv byte = 
+  let conv byte =
     [ (byte land 1)        ; (byte land 2) lsr 1   ;
       (byte land 4) lsr 2  ; (byte land 8) lsr 3   ;
       (byte land 16) lsr 4 ; (byte land 32) lsr 5  ;
       (byte land 64) lsr 6 ; (byte land 128) lsr 7 ]
-  in let arr = Array.create 256 []
+  in let arr = Array.make 256 []
   in
     for i = 0 to 255 do
       arr.(i) <- conv i;
@@ -24,7 +24,7 @@ let bytes_to_bits =
   LazyList.flatten_map byte_to_bits
 ;;
 
-let bits_from_string str =
+let _bits_from_string str =
   let len = String.length str * 8 in
   let rec next n =
     if n < len then
@@ -60,13 +60,13 @@ let decode_bits input init_code_size =
 	let (next_code, tail') = get_next_code tail new_code_size in
 	  LazyList.Cons (
 	    [next_code],
-	    fun () -> 
+	    fun () ->
 	      decode tail' new_code_size (clear_code + 2) [next_code]
 	  )
       else if code = end_code then
 	LazyList.Nil
       else
-	let entry =    
+	let entry =
 	  if code < clear_code then
 	    [code]
 	  else if code < avail_code then
@@ -78,7 +78,7 @@ let decode_bits input init_code_size =
 	  let new_avail_code = (avail_code + 1) in
 	  let new_code_size =
 	    if new_avail_code  >= (1 lsl code_size) then
-	      code_size + 1 
+	      code_size + 1
 	    else
 	      code_size
 	  in
@@ -107,7 +107,7 @@ let decode input code_size =
 module EncDictOrderedType : (Map.OrderedType with type t = int list) =
 struct
   type t = int list
-  let compare = Pervasives.compare
+  let compare = compare
 end ;;
 
 module EncDict =
@@ -136,8 +136,8 @@ let make_codes input init_code_size =
 	  if word = [] then
 	    LazyList.Cons (
 	      (clear_code, code_size),
-	      fun () -> 
-		(encode (input_tail ()) dict [char] 
+	      fun () ->
+		(encode (input_tail ()) dict [char]
 		   (init_code_size + 1) (clear_code + 2)
 		)
 	    )
@@ -149,7 +149,7 @@ let make_codes input init_code_size =
 	      else
 		let code = EncDict.find_word word dict in
 		let new_avail_code = avail_code + 1 in
-		let new_code_size = 
+		let new_code_size =
 		  if new_avail_code > (1 lsl code_size) then
 		    code_size + 1
 		  else
@@ -171,7 +171,7 @@ let make_codes input init_code_size =
 		    LazyList.Cons (
 		      (code, code_size),
 		      fun () -> encode
-			(input_tail ()) new_dict [char] 
+			(input_tail ()) new_dict [char]
 			new_code_size new_avail_code
 		    )
       | LazyList.Nil ->
@@ -194,14 +194,14 @@ let make_codes input init_code_size =
 (* konwertuje kod (12-bitow int) na liste bitow, poczawszy od
    najmlodszego bitu *)
 let code_to_bits =
-  let conv byte = 
+  let conv byte =
     [ (byte land 1)           ; (byte land 2) lsr 1   ;
       (byte land 4) lsr 2     ; (byte land 8) lsr 3   ;
       (byte land 16) lsr 4    ; (byte land 32) lsr 5  ;
       (byte land 64) lsr 6    ; (byte land 128) lsr 7 ;
       (byte land 256) lsr 8   ; (byte land 512) lsr 9 ;
       (byte land 1024) lsr 10 ; (byte land 2048) lsr 11 ]
-  in let arr = Array.create 4096 []
+  in let arr = Array.make 4096 []
   in
     for i = 0 to 4095 do
       arr.(i) <- conv i;
@@ -214,9 +214,9 @@ let code_to_bits =
    uzywamy tej funkcji tylko na 12-elementowych listach. *)
 let rec list_take n xs =
   match n, xs with
-    | 0, xs -> []
-    | n, [] -> []
-    | n, x::xs -> x :: list_take (n-1) xs 
+    | 0, _xs -> []
+    | _n, [] -> []
+    | n, x::xs -> x :: list_take (n-1) xs
 ;;
 
 (* Z listy kodow w tworzy liste reprezentujacych je bitow *)
