@@ -42,7 +42,7 @@ type graphic_control_ext = {
 type image_block = {
   image_descriptor : image_descriptor;
   image_control : graphic_control_ext option;
-  image_data : int LazyList.t;
+  image_data : Bytes.t;
   image_lzw_code_size : int;
 }
 
@@ -222,7 +222,7 @@ let read_image_block inp =
     {
       image_descriptor = desc;
       image_control = None;
-      image_data = LazyList.map int_of_char (LazyList.of_string data);
+      image_data = String.to_bytes data;
       image_lzw_code_size = lzw_cs;
     }
 
@@ -344,17 +344,18 @@ let write_data_subblocks_from_list data out =
       output_string out (String.of_bytes buf);
       n := 0;
       fn data)
+    else if Bytes.length data == 0 then (
+      output_byte out !n;
+      output_string out (String.sub (String.of_bytes buf) 0 !n);
+      if !n > 0 then output_byte out 0x00)
     else
-      match data with
-      | LazyList.Cons (byte, tail) ->
-          Bytes.set buf !n (char_of_int byte);
-          incr n;
-          fn (tail ())
-      | LazyList.Nil ->
-          output_byte out !n;
-          output_string out (String.sub (String.of_bytes buf) 0 !n);
-          if !n > 0 then output_byte out 0x00
+      let head = Bytes.get data 0 in
+      let tail = Bytes.sub data 1 (Bytes.length data - 1) in
+      Bytes.set buf !n head;
+      incr n;
+      fn tail
   in
+
   fn data
 
 let write_image_block img out =
@@ -437,7 +438,7 @@ let get_frames gif =
 (* Obrazki z przeplotem maja zmieniona kolejnosc wierszy. Ta funkcja
    zwraca kopie obrazka z prawidlowo uporzadkowanymi wierszami. *)
 let deinterlace img =
-  let new_pixels = Array.make (img.Image.width * img.Image.height) (0, 0, 0) in
+  let new_pixels = Array.make (img.Image.width * img.Image.height) 0 in
   let copy_row src dest =
     for i = 0 to img.Image.width - 1 do
       new_pixels.((src * img.Image.width) + i) <-
@@ -486,16 +487,15 @@ let get_image gif n =
         | Some ct -> ct
         | None -> raise (Error "No color table"))
   in
-  let pixels = Array.make (w * h) (0, 0, 0) in
-  let set_pixels list =
-    let counter = ref 0 in
-    LazyList.iter
-      (List.iter (fun px ->
-           pixels.(!counter) <- ct.(px);
-           incr counter))
-      list
+  let decoded_data = Lzw.decode img.image_data img.image_lzw_code_size in
+  if Bytes.length decoded_data != w * h then
+    failwith
+      (Printf.sprintf "too few/many pixels: expected %d got %d" (w * h)
+         (Bytes.length decoded_data));
+  let pixels =
+    Array.init (Bytes.length decoded_data) (fun i ->
+        int_of_char (Bytes.get decoded_data i))
   in
-  set_pixels (GifLzw.decode img.image_data img.image_lzw_code_size);
   let image =
     { Image.width = w; Image.height = h; Image.palette = ct; Image.pixels }
   in
@@ -506,7 +506,7 @@ let get_image gif n =
 (* Dla danej palety tworzy funkcje, ktora wyszukuje indeks koloru
    zadanego przez (r, g, b). Zeby przeszukiwanie dzialalo w czasie
    stalym, tworzymy duza tablice *)
-let find_color_fn palette =
+let _find_color_fn palette =
   let colors =
     Bigarray.Array3.create Bigarray.int Bigarray.c_layout 256 256 256
   in
@@ -515,20 +515,11 @@ let find_color_fn palette =
 
 (* Zwraca skompresowane dane obrazka w postaci listy leniwej *)
 let encode_image img code_size =
-  let find_color = find_color_fn img.Image.palette in
-  let pixels_list =
-    let n = ref 0 in
-    let rec fn () =
-      if !n < Array.length img.Image.pixels then
-        LazyList.Cons
-          ( (incr n;
-             find_color img.Image.pixels.(!n - 1)),
-            fn )
-      else LazyList.Nil
-    in
-    fn ()
+  let data =
+    Bytes.init (Array.length img.Image.pixels) (fun idx ->
+        char_of_int img.Image.pixels.(idx))
   in
-  GifLzw.encode pixels_list code_size
+  Lzw.encode data code_size
 
 (* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
    obrazek mial palete <= niz 256 kolorow *)
