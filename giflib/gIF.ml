@@ -473,7 +473,8 @@ let deinterlace img =
     j := !j + 2
   done;
   let palette = Image.palette img in
-  Image.v (w, h) palette new_pixels
+  let offset = Image.offset img in
+  Image.v ~offset (w, h) palette new_pixels
 
 (* Zwraca n-ta ramke obrazu zawartego w danym pliku GIF *)
 let get_image gif n =
@@ -500,7 +501,12 @@ let get_image gif n =
     Array.init (Bytes.length decoded_data) (fun i ->
         int_of_char (Bytes.get decoded_data i))
   in
-  let image = Image.v (w, h) ct pixels in
+  let image =
+    Image.v
+      ~offset:
+        (img.image_descriptor.image_left_pos, img.image_descriptor.image_top_pos)
+      (w, h) ct pixels
+  in
   if img.image_descriptor.interlace_flag then deinterlace image else image
 
 (* --- tworzenie gifa z obrazka ----------------------------------- *)
