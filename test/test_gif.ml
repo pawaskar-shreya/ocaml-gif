@@ -9,9 +9,10 @@ let test_example_file _ =
   assert_equal (ColorTable.size i.palette) 4;
   for y = 0 to i.height - 1 do
     for x = 0 to i.width - 1 do
-      Printf.printf "%02x " i.pixels.((y * i.width) + x)
-    done;
-    Printf.printf "\n"
+      let expected = 1 - (y / 2 mod 2) in
+      let v = i.pixels.((y * i.width) + x) in
+      assert_equal v expected
+    done
   done
 
 let test_get_image_fail _ =

@@ -7,13 +7,6 @@ let rec get_bits bytedata offset count =
       let bit = (byte lsr bitoffset) land 1 in
       bit + (get_bits bytedata (offset + 1) (n - 1) lsl 1)
 
-let rec pow a = function
-  | 0 -> 1
-  | 1 -> a
-  | n ->
-      let b = pow a (n / 2) in
-      b * b * if n mod 2 = 0 then 1 else a
-
 let flatten_codes bits_per_pixel code_list =
   let total_bits =
     List.fold_left (fun acc (_, bit_count) -> acc + bit_count) 0 code_list
