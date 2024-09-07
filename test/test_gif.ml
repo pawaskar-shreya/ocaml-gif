@@ -3,6 +3,7 @@ open Giflib
 
 let test_example_file _ =
   let g = GIF.from_file "../../../test/testdata/test1.gif" in
+  assert_equal (GIF.image_count g) 1;
   let i = GIF.get_image g 0 in
   assert_equal (i.width, i.height) (16, 16);
   (* assert_equal (Array.length i.pixels) (i.height * i.width);*)

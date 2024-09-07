@@ -435,6 +435,9 @@ let get_frames gif =
   and get_img = function ImageBlock b -> b | _ -> failwith "" in
   List.map get_img (List.filter flt gif.blocks)
 
+let image_count gif =
+  List.length (get_frames gif)
+
 (* Obrazki z przeplotem maja zmieniona kolejnosc wierszy. Ta funkcja
    zwraca kopie obrazka z prawidlowo uporzadkowanymi wierszami. *)
 let deinterlace img =
