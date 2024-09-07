@@ -597,3 +597,6 @@ let from_image img =
     ]
   in
   { stream_descriptor = info; blocks }
+
+let dimensions i =
+  (i.stream_descriptor.screen_width, i.stream_descriptor.screen_height)

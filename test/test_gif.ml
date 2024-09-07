@@ -3,7 +3,8 @@ open Giflib
 
 let test_example_file _ =
   let g = GIF.from_file "../../../test/testdata/test1.gif" in
-  assert_equal (GIF.image_count g) 1;
+  assert_equal ~msg:"image count" 1 (GIF.image_count g);
+  assert_equal ~msg:"screen dims" (16, 16) (GIF.dimensions g);
   let i = GIF.get_image g 0 in
   let w, h = Image.dimensions i in
   assert_equal ~msg:"dimensions" (16, 16) (w, h);
@@ -37,7 +38,8 @@ let test_read_image_twice _ =
 
 let test_read_mono_image _ =
   let g = GIF.from_file "../../../test/testdata/flitter.gif" in
-  assert_equal (GIF.image_count g) 1;
+  assert_equal 1 (GIF.image_count g);
+  assert_equal ~msg:"screen dims" (640, 480) (GIF.dimensions g);
   let i = GIF.get_image g 0 in
   let w, h = Image.dimensions i in
   assert_equal ~msg:"resolution" (640, 480) (w, h);
