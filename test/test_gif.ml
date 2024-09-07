@@ -5,13 +5,15 @@ let test_example_file _ =
   let g = GIF.from_file "../../../test/testdata/test1.gif" in
   assert_equal (GIF.image_count g) 1;
   let i = GIF.get_image g 0 in
-  assert_equal (i.width, i.height) (16, 16);
-  assert_equal (Array.length i.pixels) (i.height * i.width);
-  assert_equal (ColorTable.size i.palette) 4;
-  for y = 0 to i.height - 1 do
-    for x = 0 to i.width - 1 do
+  let w, h = Image.dimensions i in
+  assert_equal ~msg:"dimensions" (16, 16) (w, h);
+  let pixels = Image.pixels i in
+  assert_equal (w * h) (Array.length pixels);
+  assert_equal (ColorTable.size (Image.palette i)) 4;
+  for y = 0 to h - 1 do
+    for x = 0 to w - 1 do
       let expected = 1 - (y / 2 mod 2) in
-      let v = i.pixels.((y * i.width) + x) in
+      let v = pixels.((y * w) + x) in
       assert_equal v expected
     done
   done
@@ -25,18 +27,22 @@ let test_read_image_twice _ =
   let g = GIF.from_file "../../../test/testdata/test1.gif" in
   let _ = GIF.get_image g 0 in
   let i = GIF.get_image g 0 in
-  assert_equal (i.width, i.height) (16, 16);
-  assert_equal (Array.length i.pixels) (i.height * i.width);
-  assert_equal (ColorTable.size i.palette) 4
+  let w, h = Image.dimensions i in
+  assert_equal ~msg:"dimensions" (16, 16) (w, h);
+  let pixels = Image.pixels i in
+  assert_equal (w * h) (Array.length pixels);
+  assert_equal (ColorTable.size (Image.palette i)) 4
 
 let test_read_mono_image _ =
   let g = GIF.from_file "../../../test/testdata/flitter.gif" in
   assert_equal (GIF.image_count g) 1;
   let i = GIF.get_image g 0 in
-  assert_equal ~msg:"resolution" (i.width, i.height) (640, 480);
-  assert_equal ~msg:"pixel count" (Array.length i.pixels) (i.height * i.width);
+  let w, h = Image.dimensions i in
+  assert_equal ~msg:"resolution" (640, 480) (w, h);
+  let pixels = Image.pixels i in
+  assert_equal ~msg:"pixel count" (w * h) (Array.length pixels);
   assert_equal ~msg:"palette" ~printer:string_of_int 256
-    (ColorTable.size i.palette)
+    (ColorTable.size (Image.palette i))
 
 let suite =
   "BasicLoading"

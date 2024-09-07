@@ -435,44 +435,45 @@ let get_frames gif =
   and get_img = function ImageBlock b -> b | _ -> failwith "" in
   List.map get_img (List.filter flt gif.blocks)
 
-let image_count gif =
-  List.length (get_frames gif)
+let image_count gif = List.length (get_frames gif)
 
 (* Obrazki z przeplotem maja zmieniona kolejnosc wierszy. Ta funkcja
    zwraca kopie obrazka z prawidlowo uporzadkowanymi wierszami. *)
 let deinterlace img =
-  let new_pixels = Array.make (img.Image.width * img.Image.height) 0 in
+  let w, h = Image.dimensions img in
+  let pixels = Image.pixels img in
+  let new_pixels = Array.make (w * h) 0 in
   let copy_row src dest =
-    for i = 0 to img.Image.width - 1 do
-      new_pixels.((src * img.Image.width) + i) <-
-        img.Image.pixels.((dest * img.Image.width) + i)
+    for i = 0 to w - 1 do
+      new_pixels.((src * w) + i) <- pixels.((dest * w) + i)
     done
   in
   let i = ref 0 and j = ref 0 in
-  while !j < img.Image.height - 1 do
+  while !j < h - 1 do
     copy_row !j !i;
     incr i;
     j := !j + 8
   done;
   j := 4;
-  while !j < img.Image.height - 1 do
+  while !j < h - 1 do
     copy_row !j !i;
     incr i;
     j := !j + 8
   done;
   j := 2;
-  while !j < img.Image.height - 1 do
+  while !j < h - 1 do
     copy_row !j !i;
     incr i;
     j := !j + 4
   done;
   j := 1;
-  while !j < img.Image.height - 1 do
+  while !j < h - 1 do
     copy_row !j !i;
     incr i;
     j := !j + 2
   done;
-  { img with Image.pixels = new_pixels }
+  let palette = Image.palette img in
+  Image.v (w, h) palette new_pixels
 
 (* Zwraca n-ta ramke obrazu zawartego w danym pliku GIF *)
 let get_image gif n =
@@ -499,9 +500,7 @@ let get_image gif n =
     Array.init (Bytes.length decoded_data) (fun i ->
         int_of_char (Bytes.get decoded_data i))
   in
-  let image =
-    { Image.width = w; Image.height = h; Image.palette = ct; Image.pixels }
-  in
+  let image = Image.v (w, h) ct pixels in
   if img.image_descriptor.interlace_flag then deinterlace image else image
 
 (* --- tworzenie gifa z obrazka ----------------------------------- *)
@@ -518,17 +517,18 @@ let _find_color_fn palette =
 
 (* Zwraca skompresowane dane obrazka w postaci listy leniwej *)
 let encode_image img code_size =
+  let pixels = Image.pixels img in
   let data =
-    Bytes.init (Array.length img.Image.pixels) (fun idx ->
-        char_of_int img.Image.pixels.(idx))
+    Bytes.init (Array.length pixels) (fun idx -> char_of_int pixels.(idx))
   in
   Lzw.encode data code_size
 
 (* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
    obrazek mial palete <= niz 256 kolorow *)
 let from_image img =
+  let palette = Image.palette img in
   let ct_size =
-    let n = Array.length img.Image.palette in
+    let n = Array.length palette in
     if n <= 2 then 0
     else if n <= 4 then 1
     else if n <= 8 then 2
@@ -543,14 +543,15 @@ let from_image img =
   let code_size = if ct_size < 2 then 2 else ct_size + 1 in
   let new_palette =
     let p = ColorTable.create (2 lsl (ct_size + 1)) in
-    Array.iteri (fun n c -> ColorTable.set p n c) img.Image.palette;
+    Array.iteri (fun n c -> ColorTable.set p n c) palette;
     p
   in
+  let w, h = Image.dimensions img in
   let info =
     {
       default_info with
-      screen_width = img.Image.width;
-      screen_height = img.Image.height;
+      screen_width = w;
+      screen_height = h;
       global_color_table = Some new_palette;
       global_color_table_size = ct_size;
     }
@@ -571,8 +572,8 @@ let from_image img =
             {
               image_left_pos = 0;
               image_top_pos = 0;
-              image_width = img.Image.width;
-              image_height = img.Image.height;
+              image_width = w;
+              image_height = h;
               local_color_table = None;
               local_color_table_sort = false;
               local_color_table_size = 0;

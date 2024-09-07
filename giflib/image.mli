@@ -1,6 +1,7 @@
-type image = {
-  width : int;
-  height : int;
-  palette : ColorTable.t;
-  pixels : int array;
-}
+type t
+
+val v : int * int -> ColorTable.t -> int array -> t
+val dimensions : t -> int * int
+val palette : t -> ColorTable.t
+val pixels : t -> int array
+val rgb_pixels : t -> (int * int * int) array
