@@ -72,14 +72,22 @@ let decode input initial_code_size =
         else if code < next_code_index then dict.(code)
         else build_table_entry prev_code prev_code initial_code_size
       in
-      dict.(next_code_index) <-
-        build_table_entry prev_code entry initial_code_size;
-      let new_code_index = next_code_index + 1 in
-      let new_code_size =
-        if new_code_index >= 1 lsl code_size then code_size + 1 else code_size
+
+      if next_code_index < 4096 then
+        dict.(next_code_index) <-
+          build_table_entry prev_code entry initial_code_size;
+      let prev_entry, new_code_size, new_code_index =
+        match next_code_index with
+        | 4095 -> (prev_code, code_size, next_code_index)
+        | _ ->
+            let i = next_code_index + 1 in
+            ( entry,
+              (if i >= 1 lsl code_size then code_size + 1 else code_size),
+              i )
       in
 
-      entry :: inner (in_offset + code_size) new_code_size new_code_index entry
+      entry
+      :: inner (in_offset + code_size) new_code_size new_code_index prev_entry
   in
 
   let c = inner 0 (initial_code_size + 1) (clear_code + 2) (Z.zero, 0) in
