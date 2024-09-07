@@ -7,6 +7,8 @@ let test_example_file _ =
   let i = GIF.get_image g 0 in
   let w, h = Image.dimensions i in
   assert_equal ~msg:"dimensions" (16, 16) (w, h);
+  assert_equal ~msg:"offset" (0, 0) (Image.offset i);
+  assert_equal ~msg:"transparent" (Some 2) (Image.transparent i);
   let pixels = Image.pixels i in
   assert_equal (w * h) (Array.length pixels);
   assert_equal (ColorTable.size (Image.palette i)) 4;

@@ -474,7 +474,8 @@ let deinterlace img =
   done;
   let palette = Image.palette img in
   let offset = Image.offset img in
-  Image.v ~offset (w, h) palette new_pixels
+  let transparent = Image.transparent img in
+  Image.v ~offset ~transparent (w, h) palette new_pixels
 
 (* Zwraca n-ta ramke obrazu zawartego w danym pliku GIF *)
 let get_image gif n =
@@ -505,6 +506,10 @@ let get_image gif n =
     Image.v
       ~offset:
         (img.image_descriptor.image_left_pos, img.image_descriptor.image_top_pos)
+      ~transparent:
+        (match img.image_control with
+        | None -> None
+        | Some x -> x.transparent_color)
       (w, h) ct pixels
   in
   if img.image_descriptor.interlace_flag then deinterlace image else image
