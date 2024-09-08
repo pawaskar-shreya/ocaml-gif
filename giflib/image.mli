@@ -5,7 +5,9 @@ val v :
   ?transparent:int option ->
   int * int ->
   ColorTable.t ->
-  int array ->
+  Bytes.t ->
+  int ->
+  bool ->
   t
 
 val dimensions : t -> int * int

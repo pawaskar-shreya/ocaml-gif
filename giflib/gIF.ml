@@ -437,46 +437,6 @@ let get_frames gif =
 
 let image_count gif = List.length (get_frames gif)
 
-(* Obrazki z przeplotem maja zmieniona kolejnosc wierszy. Ta funkcja
-   zwraca kopie obrazka z prawidlowo uporzadkowanymi wierszami. *)
-let deinterlace img =
-  let w, h = Image.dimensions img in
-  let pixels = Image.pixels img in
-  let new_pixels = Array.make (w * h) 0 in
-  let copy_row src dest =
-    for i = 0 to w - 1 do
-      new_pixels.((src * w) + i) <- pixels.((dest * w) + i)
-    done
-  in
-  let i = ref 0 and j = ref 0 in
-  while !j < h - 1 do
-    copy_row !j !i;
-    incr i;
-    j := !j + 8
-  done;
-  j := 4;
-  while !j < h - 1 do
-    copy_row !j !i;
-    incr i;
-    j := !j + 8
-  done;
-  j := 2;
-  while !j < h - 1 do
-    copy_row !j !i;
-    incr i;
-    j := !j + 4
-  done;
-  j := 1;
-  while !j < h - 1 do
-    copy_row !j !i;
-    incr i;
-    j := !j + 2
-  done;
-  let palette = Image.palette img in
-  let offset = Image.offset img in
-  let transparent = Image.transparent img in
-  Image.v ~offset ~transparent (w, h) palette new_pixels
-
 (* Zwraca n-ta ramke obrazu zawartego w danym pliku GIF *)
 let get_image gif n =
   let img =
@@ -493,26 +453,15 @@ let get_image gif n =
         | Some ct -> ct
         | None -> raise (Error "No color table"))
   in
-  let decoded_data = Lzw.decode img.image_data img.image_lzw_code_size in
-  if Bytes.length decoded_data != w * h then
-    failwith
-      (Printf.sprintf "too few/many pixels: expected %d got %d" (w * h)
-         (Bytes.length decoded_data));
-  let pixels =
-    Array.init (Bytes.length decoded_data) (fun i ->
-        int_of_char (Bytes.get decoded_data i))
-  in
-  let image =
-    Image.v
-      ~offset:
-        (img.image_descriptor.image_left_pos, img.image_descriptor.image_top_pos)
-      ~transparent:
-        (match img.image_control with
-        | None -> None
-        | Some x -> x.transparent_color)
-      (w, h) ct pixels
-  in
-  if img.image_descriptor.interlace_flag then deinterlace image else image
+  Image.v
+    ~offset:
+      (img.image_descriptor.image_left_pos, img.image_descriptor.image_top_pos)
+    ~transparent:
+      (match img.image_control with
+      | None -> None
+      | Some x -> x.transparent_color)
+    (w, h) ct img.image_data img.image_lzw_code_size
+    img.image_descriptor.interlace_flag
 
 (* --- tworzenie gifa z obrazka ----------------------------------- *)
 
