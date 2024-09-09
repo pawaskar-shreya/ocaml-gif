@@ -7,7 +7,18 @@ let rec get_bits bytedata offset count =
       let bit = (byte lsr bitoffset) land 1 in
       bit + (get_bits bytedata (offset + 1) (n - 1) lsl 1)
 
-let flatten_codes bits_per_pixel code_list =
+let flatten_codes ?pad bits_per_pixel code_list =
+  let pad = match pad with None -> false | Some x -> x in
+  let code_list =
+    match pad with
+    | false -> code_list
+    | true ->
+        let total_bits =
+          List.fold_left (fun acc (_, bit_count) -> acc + bit_count) 0 code_list
+        in
+        let extra = bits_per_pixel - (total_bits mod bits_per_pixel) in
+        List.rev ((Z.zero, extra) :: List.rev code_list)
+  in
   let total_bits =
     List.fold_left (fun acc (_, bit_count) -> acc + bit_count) 0 code_list
   in
@@ -96,4 +107,81 @@ let decode input initial_code_size =
 
 (* --- kompresja -------------------------------------------------- *)
 
-let encode pixels_list _code_size = pixels_list
+(* Kompresja operuje na symbolach (symbolami sa numery kolorow z
+   palety). Symbole sa skladane w ciagi, reprezentowane za pomoca
+   list. Ciagom symboli przypisywane sa kody. Do mapowania list
+   symboli na ich kody korzystamy ze slownika opartego o modul Map. *)
+
+module EncDictOrderedType : Map.OrderedType with type t = int list = struct
+  type t = int list
+
+  let compare = compare
+end
+
+module EncDict = struct
+  include Map.Make (EncDictOrderedType)
+
+  (* Jesli ciag symboli ma tylko jeden element, to kodem takiego ciagu
+     jest po prostu wartosc tego symbolu. Takich ciagow nie
+     przechowujemy w slowniku. *)
+  let find_word word dict = match word with [ c ] -> c | _ -> find word dict
+end
+
+(* Kompresja: z listy symboli (bajtow) funkcja tworzy liste
+   kodow. Wynikowa list ma postac par: (kod, ilosc bitow), gdzie kod
+   to int < 4096, ilosc bitow <= 12. *)
+let make_codes input initial_code_size =
+  let clear_code = 1 lsl initial_code_size in
+  let end_code = clear_code + 1 in
+  let rec encode input_index dict word code_size avail_code =
+    if input_index / 8 < Bytes.length input then
+      let char = get_bits input input_index initial_code_size in
+      if word = [] then
+        (clear_code, code_size)
+        :: encode
+             (input_index + initial_code_size)
+             dict [ char ] (initial_code_size + 1) (clear_code + 2)
+      else
+        let word_char = char :: word in
+        if EncDict.mem word_char dict then
+          encode
+            (input_index + initial_code_size)
+            dict word_char code_size avail_code
+        else
+          let code = EncDict.find_word word dict in
+          let new_avail_code = avail_code + 1 in
+          let new_code_size =
+            if new_avail_code > 1 lsl code_size then code_size + 1
+            else code_size
+          in
+          let new_dict = EncDict.add word_char avail_code dict in
+          (* jesli wykorzystano juz wszystkie 12-bitowe kody,
+             zwracamy clear_code, czyscimy slownik i resetujemy
+             dlugosc kodu do dlugosci poczatkowej *)
+          if new_avail_code >= 0xFFF then
+            (code, code_size) :: (clear_code, code_size)
+            :: encode (input_index + 1) EncDict.empty [ char ]
+                 (initial_code_size + initial_code_size)
+                 (clear_code + 2)
+          else
+            (code, code_size)
+            :: encode
+                 (input_index + initial_code_size)
+                 new_dict [ char ] new_code_size new_avail_code
+    else
+      (* kiedy skonczy sie wejscie, zwracamy kod dla symboli
+         bedacych w buforze (o ile sa takie) oraz kod oznaczajacy
+         koniec *)
+      let ending = [ (end_code, code_size) ] in
+      if word != [] then (EncDict.find_word word dict, code_size) :: ending
+      else ending
+  in
+  let codes =
+    encode 0 EncDict.empty [] (initial_code_size + 1) (clear_code + 2)
+  in
+  codes
+
+let encode pixels_list code_size =
+  make_codes pixels_list code_size
+  |> List.map (fun (c, s) -> (Z.of_int c, s))
+  |> flatten_codes ~pad:true 8

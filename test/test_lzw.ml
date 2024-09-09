@@ -68,6 +68,23 @@ let test_get_longer_slices _ =
     assert_equal expected actual
   done
 
+let test_encode_decode _ =
+  let src = Lzw.flatten_codes 8 [ (Z.of_int 0xAB, 8); (Z.of_int 0xCD, 8) ] in
+  [ 8; 4; 2 ]
+  |> List.iter (fun bpp ->
+         let encoded = Lzw.encode src bpp in
+         let decoded = Lzw.decode encoded bpp in
+         (* This test is a bit odd, as decode expands the data to one
+            pixel per byte, rather than as a straight code. *)
+         assert_equal ~msg:"byte count" ~printer:string_of_int
+           (Bytes.length src * 8 / bpp)
+           (Bytes.length decoded);
+         for i = 0 to Bytes.length src - 1 do
+           let expected = Lzw.get_bits src (i * bpp) bpp
+           and actual = int_of_char (Bytes.get decoded i) in
+           assert_equal ~msg:"data" ~printer:string_of_int expected actual
+         done)
+
 let suite =
   "LZW"
   >::: [
@@ -81,6 +98,7 @@ let suite =
          "Get all bits of char" >:: test_all_bit_width_2;
          "Get bits bigger than byte" >:: test_get_larger_bits;
          "Get bits bigger than byte with offset" >:: test_get_longer_slices;
+         "Test encode/decode cycle" >:: test_encode_decode;
        ]
 
 let () = run_test_tt_main suite
