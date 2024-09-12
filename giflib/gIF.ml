@@ -460,6 +460,10 @@ let get_image gif n =
       (match img.image_control with
       | None -> None
       | Some x -> x.transparent_color)
+    ~delay_time:
+      (match img.image_control with
+      | None -> None
+      | Some x -> Some x.delay_time)
     (w, h) ct img.image_data img.image_lzw_code_size
     img.image_descriptor.interlace_flag
 

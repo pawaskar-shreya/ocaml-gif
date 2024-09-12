@@ -9,12 +9,15 @@ type t = {
   interlaced : bool;
   pixels : int array ref;
   transparent : int option;
+  delay_time : int option;
 }
 
-let v ?offset ?transparent dim palette image_data lzw_code_size interlaced =
+let v ?offset ?transparent ?delay_time dim palette image_data lzw_code_size
+    interlaced =
   let width, height = dim in
   let x_offset, y_offset = match offset with None -> (0, 0) | Some x -> x in
   let transparent = match transparent with None -> None | Some x -> x in
+  let delay_time = match delay_time with None -> None | Some x -> x in
   let pixels = ref [||] in
   {
     x_offset;
@@ -27,12 +30,14 @@ let v ?offset ?transparent dim palette image_data lzw_code_size interlaced =
     interlaced;
     pixels;
     transparent;
+    delay_time;
   }
 
 let dimensions i = (i.width, i.height)
 let offset i = (i.x_offset, i.y_offset)
 let palette i = i.palette
 let transparent i = i.transparent
+let delay_time i = i.delay_time
 
 (* Obrazki z przeplotem maja zmieniona kolejnosc wierszy. Ta funkcja
    zwraca kopie obrazka z prawidlowo uporzadkowanymi wierszami. *)
