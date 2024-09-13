@@ -10,16 +10,21 @@ let test_example_file _ =
   assert_equal ~msg:"dimensions" (16, 16) (w, h);
   assert_equal ~msg:"offset" (0, 0) (Image.offset i);
   assert_equal ~msg:"transparent" (Some 2) (Image.transparent i);
+  assert_equal ~msg:"delay" (Some 0) (Image.delay_time i);
   let pixels = Image.pixels i in
   assert_equal (w * h) (Array.length pixels);
-  assert_equal (ColorTable.size (Image.palette i)) 4;
   for y = 0 to h - 1 do
     for x = 0 to w - 1 do
       let expected = 1 - (y / 2 mod 2) in
       let v = pixels.((y * w) + x) in
       assert_equal v expected
     done
-  done
+  done;
+  let palette = Image.palette i in
+  assert_equal ~msg:"palette size" ~printer:string_of_int
+    (ColorTable.size palette) 4;
+  assert_equal ~msg:"black pixel" (0, 0, 0) (ColorTable.get palette 1);
+  assert_equal ~msg:"orange pixel" (255, 118, 17) (ColorTable.get palette 0)
 
 let test_get_image_fail _ =
   let g = GIF.from_file "../../../test/testdata/test1.gif" in
