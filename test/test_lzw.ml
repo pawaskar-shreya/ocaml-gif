@@ -69,8 +69,8 @@ let test_get_longer_slices _ =
   done
 
 let test_encode_decode _ =
-  let src = Lzw.flatten_codes 8 [ (Z.of_int 0xAB, 8); (Z.of_int 0xCD, 8) ] in
-  [ 8; 4; 2 ]
+  let src = Lzw.flatten_codes 8 [ (Z.of_int 0xAB, 8); (Z.of_int 0xCD, 8); (Z.of_int 0xEF, 8) ] in
+  [ 8; 6; 4; 3; 2]
   |> List.iter (fun bpp ->
          let encoded = Lzw.encode src bpp in
          let decoded = Lzw.decode encoded bpp in

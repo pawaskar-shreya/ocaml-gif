@@ -12,7 +12,10 @@ bug-reports: "https://github.com/dudek/ocaml-gif/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.14"}
-  "odoc" {with-doc}
+  "ounit2"
+  "camlp-streams"
+  "zarith"
+  "odoc"
 ]
 build: [
   ["dune" "subst"] {dev}
