@@ -85,6 +85,19 @@ let test_encode_decode _ =
            assert_equal ~msg:"data" ~printer:string_of_int expected actual
          done)
 
+let test_large_encode_decode _ =
+  let src = Bytes.init 100000 (fun i -> Char.chr (i land 0xFF)) in
+  let encoded = Lzw.encode src 8 in
+  let decoded = Lzw.decode encoded 8 in
+  assert_bool "encoded should be smaller than src" ((Bytes.length encoded) < (Bytes.length src));
+  assert_bool "src should be same size as decoded" ((Bytes.length decoded) = (Bytes.length src));
+  for i = 0 to (10000 - 1) do
+    let expected = int_of_char (Bytes.get src i)
+    and actual = int_of_char (Bytes.get decoded i) in
+    assert_equal ~msg:"data" ~printer:string_of_int expected actual
+  done
+
+
 let suite =
   "LZW"
   >::: [
@@ -99,6 +112,7 @@ let suite =
          "Get bits bigger than byte" >:: test_get_larger_bits;
          "Get bits bigger than byte with offset" >:: test_get_longer_slices;
          "Test encode/decode cycle" >:: test_encode_decode;
+         "Test larger encode/decode cycle" >:: test_large_encode_decode;
        ]
 
 let () = run_test_tt_main suite
