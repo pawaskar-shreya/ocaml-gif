@@ -4,7 +4,7 @@ type t = {
   width : int;
   height : int;
   palette : ColorTable.t;
-  image_data : Bytes.t;
+  compressed_image_data : Bytes.t;
   lzw_code_size : int;
   interlaced : bool;
   pixels : int array ref;
@@ -12,7 +12,7 @@ type t = {
   delay_time : int option;
 }
 
-let v ?offset ?transparent ?delay_time dim palette image_data lzw_code_size
+let v ?offset ?transparent ?delay_time dim palette compressed_image_data lzw_code_size
     interlaced =
   let width, height = dim in
   let x_offset, y_offset = match offset with None -> (0, 0) | Some x -> x in
@@ -25,7 +25,7 @@ let v ?offset ?transparent ?delay_time dim palette image_data lzw_code_size
     width;
     height;
     palette;
-    image_data;
+    compressed_image_data;
     lzw_code_size;
     interlaced;
     pixels;
@@ -38,6 +38,7 @@ let offset i = (i.x_offset, i.y_offset)
 let palette i = i.palette
 let transparent i = i.transparent
 let delay_time i = i.delay_time
+let compressed_image_data i = i.compressed_image_data
 
 (* Obrazki z przeplotem maja zmieniona kolejnosc wierszy. Ta funkcja
    zwraca kopie obrazka z prawidlowo uporzadkowanymi wierszami. *)
@@ -83,7 +84,7 @@ let pixels i =
       let p = !(i.pixels) in
       match Array.length p with
       | 0 ->
-          let decoded_data = Lzw.decode i.image_data i.lzw_code_size in
+          let decoded_data = Lzw.decode i.compressed_image_data i.lzw_code_size in
           if Bytes.length decoded_data != i.width * i.height then
             failwith
               (Printf.sprintf "too few/many pixels: expected %d got %d"

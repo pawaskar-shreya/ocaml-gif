@@ -479,13 +479,6 @@ let _find_color_fn palette =
   Array.iteri (fun i (r, g, b) -> colors.{r, g, b} <- i) palette;
   function r, g, b -> Bigarray.Array3.get colors r g b
 
-(* Zwraca skompresowane dane obrazka w postaci listy leniwej *)
-let encode_image img code_size =
-  let pixels = Image.pixels img in
-  let data =
-    Bytes.init (Array.length pixels) (fun idx -> char_of_int pixels.(idx))
-  in
-  Lzw.encode data code_size
 
 (* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
    obrazek mial palete <= niz 256 kolorow *)
@@ -544,7 +537,7 @@ let from_image img =
               interlace_flag = false;
             };
           image_control = Some ctl;
-          image_data = encode_image img code_size;
+          image_data = Image.compressed_image_data img;
           image_lzw_code_size = code_size;
         };
     ]

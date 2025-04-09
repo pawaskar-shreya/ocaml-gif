@@ -37,3 +37,6 @@ val transparent : t -> int option
 
 val delay_time : t -> int option
 (** If specified, the time in 1/100ths of a second that should be delayed after this frame is rendered. *)
+
+val compressed_image_data : t -> Bytes.t
+(** Get the raw compressed image data. Use `pixels` or `rgb_pixels` to get the uncompressed data. *)
