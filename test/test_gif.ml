@@ -53,6 +53,52 @@ let test_read_mono_image _ =
   assert_equal ~msg:"palette" ~printer:string_of_int 256
     (ColorTable.size (Image.palette i))
 
+let test_write_image_6_bpp _ =
+  let width = 100 and height = 100 in
+  let colours = 64 and bpp = 6 in
+  let temp_dir = Filename.temp_dir "test" "write" in
+  let colour_table = Array.init colours (fun i -> (i, i, i)) in
+  let pixels = List.init (width * height) (fun i -> (Z.of_int (i mod colours), bpp)) in
+  let packed_pixels = Lzw.flatten_codes 8 pixels in
+  let compressed = Lzw.encode packed_pixels bpp in
+  let image = Image.v
+    (width, height)
+    colour_table
+    compressed
+    bpp
+    false
+  in
+  let src_gif = GIF.from_image image in
+  let filename = temp_dir ^ "/6bpp.gif" in
+  GIF.to_file src_gif filename;
+
+  let dst_gif = GIF.from_file filename in
+  assert_equal 1 (GIF.image_count dst_gif);
+  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif)
+
+let test_write_image_8_bpp _ =
+  let width = 100 and height = 100 in
+  let colours = 256 and bpp = 8 in
+  let temp_dir = Filename.temp_dir "test" "write" in
+  let colour_table = Array.init colours (fun i -> (i, i, i)) in
+  let pixels = List.init (width * height) (fun i -> (Z.of_int (i mod colours), bpp)) in
+  let packed_pixels = Lzw.flatten_codes 8 pixels in
+  let compressed = Lzw.encode packed_pixels bpp in
+  let image = Image.v
+    (width, height)
+    colour_table
+    compressed
+    bpp
+    false
+  in
+  let src_gif = GIF.from_image image in
+  let filename = temp_dir ^ "/6bpp.gif" in
+  GIF.to_file src_gif filename;
+
+  let dst_gif = GIF.from_file filename in
+  assert_equal 1 (GIF.image_count dst_gif);
+  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif)
+
 let suite =
   "BasicLoading"
   >::: [
@@ -60,6 +106,8 @@ let suite =
          "Fail get imagae" >:: test_get_image_fail;
          "Test re-read image" >:: test_read_image_twice;
          "Test read mono image" >:: test_read_mono_image;
-       ]
+         "Test write 6 bpp image" >:: test_write_image_6_bpp;
+         "Test write 8 bpp image" >:: test_write_image_8_bpp;
+        ]
 
 let () = run_test_tt_main suite
