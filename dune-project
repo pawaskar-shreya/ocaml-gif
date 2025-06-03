@@ -19,6 +19,6 @@
  (name giflib)
  (synopsis "Implementation of GIF image format in OCaml")
  (description "Implementation of GIF image format in OCaml.")
- (depends ocaml dune ounit2 camlp-streams zarith odoc)
+ (depends ocaml dune ounit2 camlp-streams zarith odoc (ocamlformat (>= 0.27.0)))
  (tags
   (image gif bitmap)))
