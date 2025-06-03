@@ -479,7 +479,6 @@ let _find_color_fn palette =
   Array.iteri (fun i (r, g, b) -> colors.{r, g, b} <- i) palette;
   function r, g, b -> Bigarray.Array3.get colors r g b
 
-
 (* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
    obrazek mial palete <= niz 256 kolorow *)
 let from_image img =

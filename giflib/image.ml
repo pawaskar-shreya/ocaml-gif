@@ -12,8 +12,8 @@ type t = {
   delay_time : int option;
 }
 
-let v ?offset ?transparent ?delay_time dim palette compressed_image_data lzw_code_size
-    interlaced =
+let v ?offset ?transparent ?delay_time dim palette compressed_image_data
+    lzw_code_size interlaced =
   let width, height = dim in
   let x_offset, y_offset = match offset with None -> (0, 0) | Some x -> x in
   let transparent = match transparent with None -> None | Some x -> x in
@@ -84,7 +84,9 @@ let pixels i =
       let p = !(i.pixels) in
       match Array.length p with
       | 0 ->
-          let decoded_data = Lzw.decode i.compressed_image_data i.lzw_code_size in
+          let decoded_data =
+            Lzw.decode i.compressed_image_data i.lzw_code_size
+          in
           if Bytes.length decoded_data != i.width * i.height then
             failwith
               (Printf.sprintf "too few/many pixels: expected %d got %d"

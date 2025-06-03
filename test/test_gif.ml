@@ -58,16 +58,12 @@ let test_write_image_6_bpp _ =
   let colours = 64 and bpp = 6 in
   let temp_dir = Filename.temp_dir "test" "write" in
   let colour_table = Array.init colours (fun i -> (i, i, i)) in
-  let pixels = List.init (width * height) (fun i -> (Z.of_int (i mod colours), bpp)) in
+  let pixels =
+    List.init (width * height) (fun i -> (Z.of_int (i mod colours), bpp))
+  in
   let packed_pixels = Lzw.flatten_codes 8 pixels in
   let compressed = Lzw.encode packed_pixels bpp in
-  let image = Image.v
-    (width, height)
-    colour_table
-    compressed
-    bpp
-    false
-  in
+  let image = Image.v (width, height) colour_table compressed bpp false in
   let src_gif = GIF.from_image image in
   let filename = temp_dir ^ "/6bpp.gif" in
   GIF.to_file src_gif filename;
@@ -81,16 +77,12 @@ let test_write_image_8_bpp _ =
   let colours = 256 and bpp = 8 in
   let temp_dir = Filename.temp_dir "test" "write" in
   let colour_table = Array.init colours (fun i -> (i, i, i)) in
-  let pixels = List.init (width * height) (fun i -> (Z.of_int (i mod colours), bpp)) in
+  let pixels =
+    List.init (width * height) (fun i -> (Z.of_int (i mod colours), bpp))
+  in
   let packed_pixels = Lzw.flatten_codes 8 pixels in
   let compressed = Lzw.encode packed_pixels bpp in
-  let image = Image.v
-    (width, height)
-    colour_table
-    compressed
-    bpp
-    false
-  in
+  let image = Image.v (width, height) colour_table compressed bpp false in
   let src_gif = GIF.from_image image in
   let filename = temp_dir ^ "/6bpp.gif" in
   GIF.to_file src_gif filename;
@@ -108,6 +100,6 @@ let suite =
          "Test read mono image" >:: test_read_mono_image;
          "Test write 6 bpp image" >:: test_write_image_6_bpp;
          "Test write 8 bpp image" >:: test_write_image_8_bpp;
-        ]
+       ]
 
 let () = run_test_tt_main suite

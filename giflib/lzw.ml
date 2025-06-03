@@ -160,9 +160,9 @@ let make_codes input initial_code_size =
              dlugosc kodu do dlugosci poczatkowej *)
           if new_avail_code >= 0xFFF then
             (code, code_size) :: (clear_code, code_size)
-            :: encode (input_index + initial_code_size) EncDict.empty [ char ]
-                (initial_code_size + 1)
-                (clear_code + 2)
+            :: encode
+                 (input_index + initial_code_size)
+                 EncDict.empty [ char ] (initial_code_size + 1) (clear_code + 2)
           else
             (code, code_size)
             :: encode
