@@ -16,6 +16,7 @@ depends: [
   "camlp-streams"
   "zarith"
   "odoc"
+  "ocamlformat" {>= "0.27.0"}
 ]
 build: [
   ["dune" "subst"] {dev}
