@@ -69,8 +69,11 @@ let test_get_longer_slices _ =
   done
 
 let test_encode_decode _ =
-  let src = Lzw.flatten_codes 8 [ (Z.of_int 0xAB, 8); (Z.of_int 0xCD, 8); (Z.of_int 0xEF, 8) ] in
-  [ 8; 6; 4; 3; 2]
+  let src =
+    Lzw.flatten_codes 8
+      [ (Z.of_int 0xAB, 8); (Z.of_int 0xCD, 8); (Z.of_int 0xEF, 8) ]
+  in
+  [ 8; 6; 4; 3; 2 ]
   |> List.iter (fun bpp ->
          let encoded = Lzw.encode src bpp in
          let decoded = Lzw.decode encoded bpp in
@@ -89,14 +92,15 @@ let test_large_encode_decode _ =
   let src = Bytes.init 100000 (fun i -> Char.chr (i land 0xFF)) in
   let encoded = Lzw.encode src 8 in
   let decoded = Lzw.decode encoded 8 in
-  assert_bool "encoded should be smaller than src" ((Bytes.length encoded) < (Bytes.length src));
-  assert_bool "src should be same size as decoded" ((Bytes.length decoded) = (Bytes.length src));
-  for i = 0 to (10000 - 1) do
+  assert_bool "encoded should be smaller than src"
+    (Bytes.length encoded < Bytes.length src);
+  assert_bool "src should be same size as decoded"
+    (Bytes.length decoded = Bytes.length src);
+  for i = 0 to 10000 - 1 do
     let expected = int_of_char (Bytes.get src i)
     and actual = int_of_char (Bytes.get decoded i) in
     assert_equal ~msg:"data" ~printer:string_of_int expected actual
   done
-
 
 let suite =
   "LZW"
