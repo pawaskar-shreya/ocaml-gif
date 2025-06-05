@@ -498,7 +498,7 @@ let from_image img =
   (* minimalny rozmiar kodu to 2 *)
   let code_size = if ct_size < 2 then 2 else ct_size + 1 in
   let new_palette =
-    let p = ColorTable.create (2 lsl (ct_size + 1)) in
+    let p = ColorTable.create (1 lsl (ct_size + 1)) in
     Array.iteri (fun n c -> ColorTable.set p n c) palette;
     p
   in
