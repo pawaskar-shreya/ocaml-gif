@@ -68,9 +68,19 @@ let test_write_image_6_bpp _ =
   let filename = temp_dir ^ "/6bpp.gif" in
   GIF.to_file src_gif filename;
 
+  let img = GIF.get_image src_gif 0 in
+  let palette = Image.palette img in
+  assert_equal ~msg:"palette size" ~printer:string_of_int colours
+    (ColorTable.size palette);
+
   let dst_gif = GIF.from_file filename in
   assert_equal 1 (GIF.image_count dst_gif);
-  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif)
+  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif);
+
+  let img = GIF.get_image dst_gif 0 in
+  let palette = Image.palette img in
+  assert_equal ~msg:"palette size" ~printer:string_of_int colours
+    (ColorTable.size palette)
 
 let test_write_image_8_bpp _ =
   let width = 100 and height = 100 in
@@ -87,9 +97,19 @@ let test_write_image_8_bpp _ =
   let filename = temp_dir ^ "/6bpp.gif" in
   GIF.to_file src_gif filename;
 
+  let img = GIF.get_image src_gif 0 in
+  let palette = Image.palette img in
+  assert_equal ~msg:"palette size" ~printer:string_of_int colours
+    (ColorTable.size palette);
+
   let dst_gif = GIF.from_file filename in
   assert_equal 1 (GIF.image_count dst_gif);
-  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif)
+  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif);
+
+  let img = GIF.get_image dst_gif 0 in
+  let palette = Image.palette img in
+  assert_equal ~msg:"palette size" ~printer:string_of_int colours
+    (ColorTable.size palette)
 
 let suite =
   "BasicLoading"
