@@ -578,6 +578,16 @@ let from_images (images : Image.t list) : t =
         p
       in
 
+      let info =
+        {
+          default_info with
+          screen_width = w;
+          screen_height = h;
+          global_color_table = Some global_ct;
+          global_color_table_size = ct_size;
+        }
+      in
+
       { stream_descriptor = info; blocks }
 
 let dimensions i =
