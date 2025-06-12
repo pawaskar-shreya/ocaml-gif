@@ -543,5 +543,25 @@ let from_image img =
   in
   { stream_descriptor = info; blocks }
 
+let from_images (images : Image.t list) : t =
+  match images with
+  | [] -> raise (Error "from_images: empty image list")
+  | img0 :: _ ->
+      let w, h = Image.dimensions img0 in
+      List.iter
+        (fun img ->
+          let w', h' = Image.dimensions img in
+          if w <> w' || h <> h' then
+            raise (Error "from_images: inconsistent image dimensions");
+          let n_colors = Array.length (Image.palette img) in
+          if n_colors > 256 then
+            raise (Error "from_images: too many colors in an image"))
+        images;
+
+      
+
+
+      { stream_descriptor = info; blocks }
+
 let dimensions i =
   (i.stream_descriptor.screen_width, i.stream_descriptor.screen_height)
