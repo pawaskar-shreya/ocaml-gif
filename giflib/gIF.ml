@@ -609,7 +609,7 @@ let from_images (images : Image.t list) : t =
                 local_color_table = None;
                 local_color_table_sort = false;
                 local_color_table_size = 0;
-                interlace_flag = false ;
+                interlace_flag = false;
               }
             in
             ImageBlock
