@@ -588,6 +588,39 @@ let from_images (images : Image.t list) : t =
         }
       in
 
+      let blocks =
+        List.map
+          (fun img ->
+            let ctl =
+              {
+                disposal_method = 0;
+                user_input = false;
+                transparent_color = Image.transparent img;
+                delay_time =
+                  (match Image.delay_time img with Some d -> d | None -> 0);
+              }
+            in
+            let desc =
+              {
+                image_left_pos = 0;
+                image_top_pos = 0;
+                image_width = w;
+                image_height = h;
+                local_color_table = None;
+                local_color_table_sort = false;
+                local_color_table_size = 0;
+                interlace_flag = false ;
+              }
+            in
+            ImageBlock
+              {
+                image_descriptor = desc;
+                image_control = Some ctl;
+                image_data = Image.compressed_image_data img;
+                image_lzw_code_size = code_size;
+              })
+          images
+      in
       { stream_descriptor = info; blocks }
 
 let dimensions i =
