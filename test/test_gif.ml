@@ -120,16 +120,11 @@ let test_write_animation_8_bpp _ =
   let make_image frame_index =
     let pixels =
       List.init (width * height) (fun i ->
-        Z.of_int ((i + frame_index) mod colours), bpp)
+          (Z.of_int ((i + frame_index) mod colours), bpp))
     in
     let packed = Lzw.flatten_codes bpp pixels in
     let compressed = Lzw.encode packed bpp in
-    Image.v
-      ~delay_time:(Some 5)
-      (width, height)
-      colour_table
-      compressed
-      bpp
+    Image.v ~delay_time:(Some 5) (width, height) colour_table compressed bpp
       false
   in
 
