@@ -543,6 +543,7 @@ let from_image img =
   in
   { stream_descriptor = info; blocks }
 
+(* Creates an animated GIF and ensures that all images have same dimensions and use palettes with 256 or fewer colors*)
 let from_images (images : Image.t list) : t =
   match images with
   | [] -> raise (Error "from_images: empty image list")
