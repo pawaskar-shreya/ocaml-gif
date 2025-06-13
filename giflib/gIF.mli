@@ -11,6 +11,8 @@ val from_file : string -> t
 val from_image : Image.t -> t
 val to_file : t -> string -> unit
 
+val from_images : Image.t list -> t
+
 val get_image : t -> int -> Image.t
 (** Get a container image by index *)
 
