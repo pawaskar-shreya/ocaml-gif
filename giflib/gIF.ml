@@ -501,6 +501,36 @@ let compute_color_table (palette : ColorTable.t) : int * int * ColorTable.t =
   in
   (ct_size, code_size, table)
 
+(* Shared logic for image block creation*)
+let block_of_image ~w ~h ~code_size (img : Image.t) : block =
+  let ctl =
+    {
+      disposal_method = 0;
+      user_input = false;
+      transparent_color = Image.transparent img;
+      delay_time = (match Image.delay_time img with Some d -> d | None -> 0);
+    }
+  in
+  let desc =
+    {
+      image_left_pos = 0;
+      image_top_pos = 0;
+      image_width = w;
+      image_height = h;
+      local_color_table = None;
+      local_color_table_sort = false;
+      local_color_table_size = 0;
+      interlace_flag = false;
+    }
+  in
+  ImageBlock
+    {
+      image_descriptor = desc;
+      image_control = Some ctl;
+      image_data = Image.compressed_image_data img;
+      image_lzw_code_size = code_size;
+    }
+
 (* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
    obrazek mial palete <= niz 256 kolorow *)
 let from_image img =
@@ -517,35 +547,7 @@ let from_image img =
       global_color_table_size = ct_size;
     }
   in
-  let ctl =
-    {
-      disposal_method = 0;
-      user_input = false;
-      transparent_color = None;
-      delay_time = 0;
-    }
-  in
-  let blocks =
-    [
-      ImageBlock
-        {
-          image_descriptor =
-            {
-              image_left_pos = 0;
-              image_top_pos = 0;
-              image_width = w;
-              image_height = h;
-              local_color_table = None;
-              local_color_table_sort = false;
-              local_color_table_size = 0;
-              interlace_flag = false;
-            };
-          image_control = Some ctl;
-          image_data = Image.compressed_image_data img;
-          image_lzw_code_size = code_size;
-        };
-    ]
-  in
+  let blocks = [ block_of_image ~w ~h ~code_size img ] in
   { stream_descriptor = info; blocks }
 
 (* Creates an animated GIF and ensures that all images have same dimensions and use palettes with 256 or fewer colors*)
@@ -576,40 +578,7 @@ let from_images (images : Image.t list) : t =
           global_color_table_size = ct_size;
         }
       in
-
-      let blocks =
-        List.map
-          (fun img ->
-            let ctl =
-              {
-                disposal_method = 0;
-                user_input = false;
-                transparent_color = Image.transparent img;
-                delay_time =
-                  (match Image.delay_time img with Some d -> d | None -> 0);
-              }
-            in
-            let desc =
-              {
-                image_left_pos = 0;
-                image_top_pos = 0;
-                image_width = w;
-                image_height = h;
-                local_color_table = None;
-                local_color_table_sort = false;
-                local_color_table_size = 0;
-                interlace_flag = false;
-              }
-            in
-            ImageBlock
-              {
-                image_descriptor = desc;
-                image_control = Some ctl;
-                image_data = Image.compressed_image_data img;
-                image_lzw_code_size = code_size;
-              })
-          images
-      in
+      let blocks = List.map (fun img -> block_of_image img ~w ~h ~code_size) images in
       { stream_descriptor = info; blocks }
 
 let dimensions i =
