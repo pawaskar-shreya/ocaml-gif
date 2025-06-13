@@ -479,12 +479,10 @@ let _find_color_fn palette =
   Array.iteri (fun i (r, g, b) -> colors.{r, g, b} <- i) palette;
   function r, g, b -> Bigarray.Array3.get colors r g b
 
-(* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
-   obrazek mial palete <= niz 256 kolorow *)
-let from_image img =
-  let palette = Image.palette img in
+(* Shared logic for computing color table size, LZW code size, and building the color table*)
+let compute_color_table (palette : ColorTable.t) : int * int * ColorTable.t =
+  let n = Array.length palette in
   let ct_size =
-    let n = Array.length palette in
     if n <= 2 then 0
     else if n <= 4 then 1
     else if n <= 8 then 2
@@ -493,14 +491,21 @@ let from_image img =
     else if n <= 64 then 5
     else if n <= 128 then 6
     else if n <= 256 then 7
-    else raise (Error "from_image: too many colors")
+    else raise (Error "too many colors in palette")
   in
-  (* minimalny rozmiar kodu to 2 *)
   let code_size = if ct_size < 2 then 2 else ct_size + 1 in
-  let new_palette =
+  let table =
     let p = ColorTable.create (1 lsl (ct_size + 1)) in
-    Array.iteri (fun n c -> ColorTable.set p n c) palette;
+    Array.iteri (fun i c -> ColorTable.set p i c) palette;
     p
+  in
+  (ct_size, code_size, table)
+
+(* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
+   obrazek mial palete <= niz 256 kolorow *)
+let from_image img =
+  let palette = Image.palette img in
+  let ct_size, code_size, new_palette = compute_color_table palette 
   in
   let w, h = Image.dimensions img in
   let info =
@@ -560,25 +565,8 @@ let from_images (images : Image.t list) : t =
         images;
 
       let palette = Image.palette img0 in
-      let ct_size =
-        let n = Array.length palette in
-        if n <= 2 then 0
-        else if n <= 4 then 1
-        else if n <= 8 then 2
-        else if n <= 16 then 3
-        else if n <= 32 then 4
-        else if n <= 64 then 5
-        else if n <= 128 then 6
-        else if n <= 256 then 7
-        else raise (Error "from_images: too many colors")
+      let ct_size, code_size, global_ct = compute_color_table palette
       in
-      let code_size = if ct_size < 2 then 2 else ct_size + 1 in
-      let global_ct =
-        let p = ColorTable.create (1 lsl (ct_size + 1)) in
-        Array.iteri (fun i c -> ColorTable.set p i c) palette;
-        p
-      in
-
       let info =
         {
           default_info with
