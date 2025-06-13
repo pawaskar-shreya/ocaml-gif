@@ -535,8 +535,7 @@ let block_of_image ~w ~h ~code_size (img : Image.t) : block =
    obrazek mial palete <= niz 256 kolorow *)
 let from_image img =
   let palette = Image.palette img in
-  let ct_size, code_size, new_palette = compute_color_table palette 
-  in
+  let ct_size, code_size, new_palette = compute_color_table palette in
   let w, h = Image.dimensions img in
   let info =
     {
@@ -567,8 +566,7 @@ let from_images (images : Image.t list) : t =
         images;
 
       let palette = Image.palette img0 in
-      let ct_size, code_size, global_ct = compute_color_table palette
-      in
+      let ct_size, code_size, global_ct = compute_color_table palette in
       let info =
         {
           default_info with
@@ -578,7 +576,9 @@ let from_images (images : Image.t list) : t =
           global_color_table_size = ct_size;
         }
       in
-      let blocks = List.map (fun img -> block_of_image img ~w ~h ~code_size) images in
+      let blocks =
+        List.map (fun img -> block_of_image img ~w ~h ~code_size) images
+      in
       { stream_descriptor = info; blocks }
 
 let dimensions i =
