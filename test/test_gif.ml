@@ -135,7 +135,24 @@ let test_write_animation_8_bpp _ =
 
   let dst_gif = GIF.from_file filename in
   assert_equal ~msg:"frame count" 3 (GIF.image_count dst_gif);
-  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif)
+  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif);
+
+  (* Local helper to access a pixel at (x, y) *)
+  let get_pixel img x y =
+    let w, _ = Image.dimensions img in
+    let pixels = Image.pixels img in
+    pixels.(y * w + x)
+  in
+
+  (* Check for first pixel in each frame to confirm correct ordering *)
+  List.iteri
+    (fun idx expected_offset ->
+      let img = GIF.get_image dst_gif idx in
+      let actual = get_pixel img 0 0 in
+      let expected = expected_offset mod colours in
+      assert_equal ~msg:(Printf.sprintf "frame %d: pixel (0,0)" idx)
+        expected actual)
+    [0; 1; 2]
 
 let suite =
   "BasicLoading"
