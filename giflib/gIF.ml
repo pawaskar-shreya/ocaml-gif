@@ -565,7 +565,7 @@ let from_images (images : Image.t list) : t =
 
 (* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
    obrazek mial palete <= niz 256 kolorow *)
-let from_image img = from_images [img]
+let from_image img = from_images [ img ]
 
 let dimensions i =
   (i.stream_descriptor.screen_width, i.stream_descriptor.screen_height)

@@ -141,7 +141,7 @@ let test_write_animation_8_bpp _ =
   let get_pixel img x y =
     let w, _ = Image.dimensions img in
     let pixels = Image.pixels img in
-    pixels.(y * w + x)
+    pixels.((y * w) + x)
   in
 
   (* Check for first pixel in each frame to confirm correct ordering *)
@@ -150,9 +150,10 @@ let test_write_animation_8_bpp _ =
       let img = GIF.get_image dst_gif idx in
       let actual = get_pixel img 0 0 in
       let expected = expected_offset mod colours in
-      assert_equal ~msg:(Printf.sprintf "frame %d: pixel (0,0)" idx)
+      assert_equal
+        ~msg:(Printf.sprintf "frame %d: pixel (0,0)" idx)
         expected actual)
-    [0; 1; 2]
+    [ 0; 1; 2 ]
 
 let suite =
   "BasicLoading"
