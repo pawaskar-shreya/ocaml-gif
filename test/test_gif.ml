@@ -111,6 +111,50 @@ let test_write_image_8_bpp _ =
   assert_equal ~msg:"palette size" ~printer:string_of_int colours
     (ColorTable.size palette)
 
+let test_write_animation_8_bpp _ =
+  let width = 100 and height = 100 in
+  let colours = 256 and bpp = 8 in
+  let temp_dir = Filename.temp_dir "test" "write" in
+  let colour_table = Array.init colours (fun i -> (i, i, i)) in
+
+  let make_image frame_index =
+    let pixels =
+      List.init (width * height) (fun i ->
+          (Z.of_int ((i + frame_index) mod colours), bpp))
+    in
+    let packed = Lzw.flatten_codes bpp pixels in
+    let compressed = Lzw.encode packed bpp in
+    Image.v ~delay_time:(Some 5) (width, height) colour_table compressed bpp
+      false
+  in
+
+  let frames = [ make_image 0; make_image 1; make_image 2 ] in
+  let gif = GIF.from_images frames in
+  let filename = temp_dir ^ "/animated.gif" in
+  GIF.to_file gif filename;
+
+  let dst_gif = GIF.from_file filename in
+  assert_equal ~msg:"frame count" 3 (GIF.image_count dst_gif);
+  assert_equal ~msg:"screen dims" (width, height) (GIF.dimensions dst_gif);
+
+  (* Local helper to access a pixel at (x, y) *)
+  let get_pixel img x y =
+    let w, _ = Image.dimensions img in
+    let pixels = Image.pixels img in
+    pixels.((y * w) + x)
+  in
+
+  (* Check for first pixel in each frame to confirm correct ordering *)
+  List.iteri
+    (fun idx expected_offset ->
+      let img = GIF.get_image dst_gif idx in
+      let actual = get_pixel img 0 0 in
+      let expected = expected_offset mod colours in
+      assert_equal
+        ~msg:(Printf.sprintf "frame %d: pixel (0,0)" idx)
+        expected actual)
+    [ 0; 1; 2 ]
+
 let suite =
   "BasicLoading"
   >::: [
@@ -120,6 +164,7 @@ let suite =
          "Test read mono image" >:: test_read_mono_image;
          "Test write 6 bpp image" >:: test_write_image_6_bpp;
          "Test write 8 bpp image" >:: test_write_image_8_bpp;
+         "Test write 8 bpp animation" >:: test_write_animation_8_bpp;
        ]
 
 let () = run_test_tt_main suite
