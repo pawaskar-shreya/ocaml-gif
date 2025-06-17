@@ -531,24 +531,6 @@ let block_of_image ~w ~h ~code_size (img : Image.t) : block =
       image_lzw_code_size = code_size;
     }
 
-(* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
-   obrazek mial palete <= niz 256 kolorow *)
-let from_image img =
-  let palette = Image.palette img in
-  let ct_size, code_size, new_palette = compute_color_table palette in
-  let w, h = Image.dimensions img in
-  let info =
-    {
-      default_info with
-      screen_width = w;
-      screen_height = h;
-      global_color_table = Some new_palette;
-      global_color_table_size = ct_size;
-    }
-  in
-  let blocks = [ block_of_image ~w ~h ~code_size img ] in
-  { stream_descriptor = info; blocks }
-
 (* Creates an animated GIF and ensures that all images have same dimensions and use palettes with 256 or fewer colors*)
 let from_images (images : Image.t list) : t =
   match images with
@@ -580,6 +562,10 @@ let from_images (images : Image.t list) : t =
         List.map (fun img -> block_of_image img ~w ~h ~code_size) images
       in
       { stream_descriptor = info; blocks }
+
+(* Z danego obrazka tworzy caly kontener GIF z jedna ramka. Wymaga, by
+   obrazek mial palete <= niz 256 kolorow *)
+let from_image img = from_images [img]
 
 let dimensions i =
   (i.stream_descriptor.screen_width, i.stream_descriptor.screen_height)
