@@ -1,7 +1,7 @@
 (** {1 LZW Compression and Decompression}
 
-    Provides functions for compressing and decompressing image data
-    using the LZW algorithm, as used in GIF image encoding. *)
+    Provides functions for compressing and decompressing image data using the
+    LZW algorithm, as used in GIF image encoding. *)
 
 val decode : Bytes.t -> int -> Bytes.t
 (** Decompresses LZW-encoded data given the initial code size. *)
