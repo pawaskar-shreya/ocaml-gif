@@ -1,3 +1,5 @@
 (tests
  (names test_gif test_lzw)
+ (deps
+  (source_tree testdata))
  (libraries giflib ounit2))
