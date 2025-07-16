@@ -1,0 +1,3 @@
+{0 GIFlib - A pure OCaml GIF library.}
+
+{!giflib} is a library for reading and writing {{:https://en.wikipedia.org/wiki/GIF}GIF} images written purely in OCaml. It supports both single images and animated GIFs, and provides access to the image both as an RGB bitmap, but also as a paletted bitmap as stored in the file.
