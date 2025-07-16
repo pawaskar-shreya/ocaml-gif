@@ -9,9 +9,9 @@
 (source
  (github claudiusFX/ocaml-gif))
 
-(authors "Jan Dudek <jd@jandudek.com>" "Michael Dales <michael@digitalflapjack.com" "Shreya Pawaskar <shreya.pawaskar.main@gmail.com>")
+(authors "Jan Dudek <jd@jandudek.com>" "Michael Dales <michael@digitalflapjack.com>" "Shreya Pawaskar <shreya.pawaskar.main@gmail.com>")
 
-(maintainers "Michael Dales <michael@digitalflapjack.com" "Shreya Pawaskar <shreya.pawaskar.main@gmail.com>")
+(maintainers "Michael Dales <michael@digitalflapjack.com>" "Shreya Pawaskar <shreya.pawaskar.main@gmail.com>")
 
 (license MIT)
 
