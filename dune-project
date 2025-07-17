@@ -2,8 +2,6 @@
 
 (name giflib)
 
-(version 1.0.2)
-
 (generate_opam_files true)
 
 (source
