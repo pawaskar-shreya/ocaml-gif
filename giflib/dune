@@ -1,4 +1,4 @@
 (library
  (public_name giflib)
  (name giflib)
- (libraries camlp-streams zarith))
+ (libraries zarith))
